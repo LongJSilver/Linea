@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<arguments>
+  <Simple Name="OriginPath" ValueType="String" Mandatory="true" >
+    <Alias>src</Alias>
+    <Description>The source path for the operation.</Description>
+  </Simple>
+  <Simple Name="Extension" ValueType="Enum"   >
+    <Alias>ext</Alias>
+    <Description>File extension to filter by. Possible Values: txt, csv, xml.</Description>
+    <PossibleValues>
+      <Value>txt</Value>
+      <Value>csv</Value>
+      <Value>xml</Value>
+    </PossibleValues>
+  </Simple>
+  <Flag Name="o">
+    <Alias>Overwrite</Alias>
+    <Description>Overwrite existing files if set.</Description>
+  </Flag>
+  <Flag Name="t" />
+  <Named Name="RetryCount" ValueType="Integer" Mandatory="false" >
+    <Alias>retries</Alias>
+    <Description>Number of times to retry on failure.</Description>
+  </Named>
+
+  <Simple Name="DestinationPath" ValueType="String" Mandatory="true" Repeatable="true" >
+    <Alias>dst</Alias>
+    <Description>The destination path for the operation.</Description>
+  </Simple>
+</arguments>
