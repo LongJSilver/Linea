@@ -1,0 +1,30 @@
+﻿<Window x:Class="Linea.Sample.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Linea.Sample.WPF"
+        xmlns:atriumWPF="clr-namespace:Linea.WPF;assembly=Linea.WPF"
+        mc:Ignorable="d" Background="Wheat"
+        Title="MainWindow" Height="450" Width="800"
+        HorizontalContentAlignment="Left"
+        VerticalContentAlignment="Top"
+        >    
+    <Grid >         
+        <!--<ListBox Name="ConsoleBox"  Background="Blue"                  
+             BorderThickness="0"
+             VirtualizingStackPanel.IsVirtualizing="True"
+             VirtualizingStackPanel.VirtualizationMode="Recycling"
+             Margin="0"
+             >
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>-->
+        <atriumWPF:WPFConsole x:Name="ConsoleBox" 
+                          VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch" />
+    </Grid>
+</Window>
