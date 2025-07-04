@@ -5,6 +5,12 @@ VisualStudioVersion = 17.13.35818.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Linea", "Linea\Linea.csproj", "{3222EB74-EF54-416B-B5CB-570615A0CDA7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{6C83A596-D32D-B35F-00DD-F0C99B673980}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Linea.Sample.Win", "Linea.Sample.Win\Linea.Sample.Win.csproj", "{DD5D3F84-D4EA-98D7-40CB-7DDD5F55B295}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Linea.Windows", "Linea.Windows\Linea.Windows.csproj", "{7086533C-01E1-4687-AEDB-CF4205888E0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +21,20 @@ Global
 		{3222EB74-EF54-416B-B5CB-570615A0CDA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3222EB74-EF54-416B-B5CB-570615A0CDA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3222EB74-EF54-416B-B5CB-570615A0CDA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD5D3F84-D4EA-98D7-40CB-7DDD5F55B295}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD5D3F84-D4EA-98D7-40CB-7DDD5F55B295}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD5D3F84-D4EA-98D7-40CB-7DDD5F55B295}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD5D3F84-D4EA-98D7-40CB-7DDD5F55B295}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7086533C-01E1-4687-AEDB-CF4205888E0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7086533C-01E1-4687-AEDB-CF4205888E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7086533C-01E1-4687-AEDB-CF4205888E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7086533C-01E1-4687-AEDB-CF4205888E0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DD5D3F84-D4EA-98D7-40CB-7DDD5F55B295} = {6C83A596-D32D-B35F-00DD-F0C99B673980}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3AAB23FE-73D2-456A-87B3-3DD345EF158D}

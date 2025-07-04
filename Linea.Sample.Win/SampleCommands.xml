@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<commands>
+	<Command Name="wait" AskForMissingArguments="true">
+		<Arguments>
+			<Simple Name="interval" ValueType="Integer" Mandatory="true" >
+				<Description>How long to wait for, in milliseconds</Description>
+				<EnquireString>For how Long? (ms)</EnquireString>
+			</Simple>
+		</Arguments>
+	</Command>
+
+	<Command Name="exit"   > 
+	</Command>
+	
+	<Command Name="echo" AskForMissingArguments="true">
+		<Arguments>
+			<Simple Name="value" ValueType="String" Mandatory="true" >
+				<Description>String to repeat</Description>
+				<EnquireString>What?</EnquireString>
+			</Simple>
+		</Arguments>
+	</Command> 
+</commands>
