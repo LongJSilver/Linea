@@ -62,15 +62,50 @@ namespace Linea.Interface
         private List<string> _history;
         private int _historyIndex;
         private readonly Dictionary<int, CommandDescriptor> _indexedCommands = new Dictionary<int, CommandDescriptor>();
-        private uint PromptLength => (uint)(_promptInfo.ConsoleW * (_promptInfo.endRow - _promptInfo.startRow)
-                                           + (_promptInfo.endColumn - _promptInfo.startColumn));
-        private int LogicalCursorPos => (int)(_cm.LogicalCursorPosition - PromptLength);
+
+        /// <summary>
+        /// Length of the portion of the prompt that overlaps with the current logical row; this is necessary
+        /// because the prompt could span more logical rows and we only care about the portion that occupies the current row.
+        /// </summary>
+        private uint OverlappingPromptLength
+        {
+            get
+            {
+                uint LogicalRowStartsAt = _cm.LogicalRowStartsAt;
+
+                if (_promptInfo.endRow < LogicalRowStartsAt)
+                {
+                    return 0;
+                }
+
+                int promptStartColumn;
+                if (_promptInfo.startRow < LogicalRowStartsAt)
+                {
+                    promptStartColumn = 0;
+                }
+                else
+                {
+                    promptStartColumn = _promptInfo.startColumn;
+                }
+
+                return (uint)(_promptInfo.ConsoleW * (_promptInfo.endRow - LogicalRowStartsAt) 
+                           + (_promptInfo.endColumn - promptStartColumn));
+            }
+        }
+
+
+
+        private int LogicalCursorPos => (int)(_cm.LogicalCursorPosition - OverlappingPromptLength);
+
+
+
+
         private string CurrentText
         {
             get
             {
                 string current = _cm.CurrentRowText;
-                return current.Substring((int)PromptLength);
+                return current.Substring((int)OverlappingPromptLength);
             }
         }
 

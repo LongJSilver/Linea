@@ -165,7 +165,7 @@ namespace Linea.Interface
             this._promptInfo.startRow = this._cm.CursorRow;
             this._promptInfo.ConsoleW = this._cm.Width;
 
-            if (this.CommandMode != CliCommandMode.TypeOnly)
+            if (this._mode == InputMode.UserCommand && this.CommandMode != CliCommandMode.TypeOnly)
             {
                 this.PrintNumberedCommandList();
             }

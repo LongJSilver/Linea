@@ -7,6 +7,7 @@ namespace Linea.Interface
 {
     public partial class ConsoleMechanics
     {
+
         private abstract class ConsoleMechanicsGenericList<T> : IList<T>, IList, INotifyCollectionChanged
         {
             protected readonly ConsoleMechanics _mech;

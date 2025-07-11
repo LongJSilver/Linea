@@ -135,9 +135,9 @@ namespace Linea.Interface
         private readonly StringEventTextWriter _writer;
         public TextWriter Writer => _writer;
 
-        public uint _width;
-        public uint _requestedWidth;
-        public uint _height;
+        private uint _width;
+        private uint _requestedWidth;
+        private uint _height;
 
         public int Height
         {
@@ -922,6 +922,9 @@ namespace Linea.Interface
                 return (uint)(current.Ordinal * Width + Cursor.Column);
             }
         }
+
+        public uint LogicalRowStartsAt => Cursor.Row - CurrentPhysicalRow.Ordinal;
+
 
         public string GetRowText(int i)
         {
