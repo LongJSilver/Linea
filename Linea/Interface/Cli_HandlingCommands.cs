@@ -1,5 +1,6 @@
 ﻿using Linea.Command;
 using Linea.Utils;
+using MapXML.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -16,8 +17,8 @@ namespace Linea.Interface
         /// <summary>
         /// Tutti gli handler vengono associati a ciascuno dei comandi che gestiscono.
         /// </summary>
-        private IDictionary<CommandDescriptor, ICommandHandler> _CommandToHandler
-            = new Dictionary<CommandDescriptor, ICommandHandler>(CommandDescriptor.Comparer);
+        private CIDictionary<ICommandHandler> _CommandToHandler
+            = new CIDictionary<ICommandHandler>();
         /// <summary>
         /// insieme degli handler di comandi registrati.
         /// </summary>
@@ -50,9 +51,11 @@ namespace Linea.Interface
             }
 
             //aggiungiamo tutti i comandi
-            foreach (CommandDescriptor item in commandHandler.Commands)
+            var names = from c in commandHandler.Commands from n in c.Names select n;
+
+            foreach (string n in names)
             {
-                this._CommandToHandler[item] = commandHandler;
+                this._CommandToHandler.Add(n, commandHandler);
             }
         }
 
@@ -66,10 +69,8 @@ namespace Linea.Interface
         {
             foreach (CommandDescriptor item in commandHandler.Commands)
             {
-                if (this._CommandToHandler.ContainsKey(item) && !this._CommandToHandler[item].Equals(commandHandler))
-                {
+                if (item.Names.Any(this._CommandToHandler.ContainsKey))
                     return false;
-                }
             }
             return true;
         }
@@ -90,7 +91,7 @@ namespace Linea.Interface
             List<string> commandsRegisteredForThisHandler = new();
             foreach (string item in this._CommandToHandler.Keys)
             {
-                if (this._CommandToHandler[item].Equals(c))
+                if (this._CommandToHandler.ContainsKey(item))
                 {
                     commandsRegisteredForThisHandler.Add(item);
                 }
@@ -459,13 +460,16 @@ namespace Linea.Interface
         }
         private void PrintNumberedCommandList()
         {
-            IList<CommandDescriptor> l = new List<CommandDescriptor>(
-                  from handl in this._CommandToHandler
-                  where handl.Value.IsActive(handl.Key.Name) && handl.Value.ShouldIncludeInIndexedList(handl.Key)
-                  select handl.Key
-                                              );
+            IList<CommandDescriptor> comms =
+                (from handl in _AllHandlers
+                 from comm in handl.ActiveCommands
+                 where handl.ShouldIncludeInIndexedList(comm.Name)
+                 select comm).ToList();
+                         
+
             this._indexedCommands.Clear();
-            this.PrintList(l, "Please type one of the following numbers, and hit Enter.",
+
+            this.PrintList(comms, "Please type one of the following numbers, and hit Enter.",
                 (c) => c.DisplayName,
                 true,
                 (i, v) => this._indexedCommands[i] = v);

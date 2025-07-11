@@ -7,7 +7,7 @@ using System.Linq;
 namespace Linea.Command
 {
     public delegate void CommandDelegate(string command, ParsedArguments args, ICliFunctions cli);
-    public abstract class CliCommand
+    public abstract class CliCommand : IEquatable<CliCommand?>
     {
         public static CliCommand FromDelegate(CommandDescriptor name, CommandDelegate deleg)
         {
@@ -92,6 +92,8 @@ namespace Linea.Command
                 }
             }
         }
+
+        public IReadOnlyCollection<string> Names => Descriptor.Names;
         public CommandDescriptor Descriptor { get; private set; }
         public string Name => this.Descriptor.Name;
         private string? _displayNameOverride = null;
@@ -110,8 +112,8 @@ namespace Linea.Command
                 DescriptionChanged(this);
             }
         }
-        public string ShortDescription => this.Descriptor.ShortDescription;
-        public string LongDescription => this.Descriptor.LongDescription;
+
+        public string Description => this.Descriptor.Description;
 
         /// <summary>
         /// Should we check the number and nature of arguments and flags?<para/>
@@ -128,8 +130,7 @@ namespace Linea.Command
         protected readonly ArgumentDescriptorCollection _arguments = new ArgumentDescriptorCollection();
         public ArgumentDescriptorCollection Arguments => this._arguments;
 
-        //-----------------------------------------------//
-        //-----------------------------------------------//
+
         //-----------------------------------------------//
         protected CliCommand(CommandDescriptor name)
         {
@@ -230,6 +231,22 @@ namespace Linea.Command
 
         protected abstract void OnCommand(string command, ParsedArguments args, ICliFunctions cli);
 
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as CliCommand);
+        }
+
+        public bool Equals(CliCommand? other)
+        {
+            return other is not null &&
+                   Name == other.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
+        }
+
         private class DelegatedCommand : CliCommand
         {
             private readonly CommandDelegate _delegate;
@@ -246,27 +263,35 @@ namespace Linea.Command
 
     public class CliCommandHandler : ICommandHandler
     {
-        private readonly CIDictionary<CliCommand> _commands = new CIDictionary<CliCommand>();
+        private readonly CIDictionary<CliCommand> _aliasToCommand = new CIDictionary<CliCommand>();
+        private readonly HashSet<CliCommand> _allCommands = new HashSet<CliCommand>();
 
         public event Action<ICommandHandler> HandlerChanged = delegate { };
 
         public CliCommand GetCommand(CommandDescriptor name)
         {
-            return this._commands[name.Name] ?? throw new ArgumentException($"Unable to find a command with name \"{name.Name}\"");
+            return this._aliasToCommand[name.Name] ?? throw new ArgumentException($"Unable to find a command with name \"{name.Name}\"");
         }
 
-        public IEnumerable<string> IndexableActiveCommands => from c in this._commands where c.Value.Active && c.Value.IsIndexable select c.Key;
-        public IEnumerable<CommandDescriptor> ActiveCommands => from c in this._commands.Values where c.Active select c.Descriptor;
-        public IEnumerable<CommandDescriptor> Commands => from c in this._commands.Values select c.Descriptor;
-        public IEnumerable<string> IndexableCommands => from c in this._commands where c.Value.IsIndexable select c.Key;
+        public IEnumerable<CommandDescriptor> IndexableActiveCommands => from c in this._allCommands where c.Active && c.IsIndexable select c.Descriptor;
+        public IEnumerable<CommandDescriptor> ActiveCommands => from c in this._allCommands where c.Active select c.Descriptor;
+        public IEnumerable<CommandDescriptor> Commands => from c in this._allCommands select c.Descriptor;
+        public IEnumerable<CommandDescriptor> IndexableCommands => from c in this._allCommands where c.IsIndexable select c.Descriptor;
 
-        public bool ShouldIncludeInIndexedList(string command) => (this._commands[command]?.IsIndexable).GetValueOrDefault(false);
+        public bool ShouldIncludeInIndexedList(string command) => (this._aliasToCommand[command]?.IsIndexable).GetValueOrDefault(false);
 
         public CliCommand AddCommand(CommandDescriptor name, CommandDelegate deleg) => this.AddCommand(CliCommand.FromDelegate(name, deleg));
 
         public CliCommand AddCommand(CliCommand c)
         {
-            this._commands.Add(c.Descriptor, c);
+            foreach (string name in c.Names)
+            {
+                if (_aliasToCommand.ContainsKey(name))
+                    throw new InvalidOperationException("A command with that name or alias was already added");
+                this._aliasToCommand.Add(name, c);
+            }
+            _allCommands.Add(c);
+
             this.RegisterHandlers(c);
             HandlerChanged(this);
             return c;
@@ -274,22 +299,46 @@ namespace Linea.Command
 
         public void RemoveCommand(CommandDescriptor c)
         {
-            if (this._commands.TryGetValue(c, out var comm))
+            CliCommand? firstFound = null;
+            foreach (string name in c.Names)
             {
-                this._commands.Remove(c);
+                if (this._aliasToCommand.TryGetValue(name, out CliCommand comm))
+                {
+                    if (firstFound == null)
+                    {
+                        firstFound = comm;
+                    }
+                    else if (firstFound != null && firstFound != comm)
+                    {
+                        throw new InvalidOperationException($"Alias '{name}' is related to a different Command");
+                    }
 
-                this.UnregisterHandlers(comm);
-                HandlerChanged(this);
+                    this._aliasToCommand.Remove(name);
+                }
+                else
+                    throw new InvalidOperationException($"Alias '{name}' does not correspond to an existing command");
             }
+
+            _allCommands.Remove(firstFound!);
+            this.UnregisterHandlers(firstFound!);
+
+            HandlerChanged(this);
         }
+
         public void RemoveCommand(CliCommand comm)
         {
-            if (this._commands.Remove(comm.Descriptor))
+            if (!_allCommands.Contains(comm))
             {
-
-                this.UnregisterHandlers(comm);
-                HandlerChanged(this);
+                throw new InvalidOperationException("This command was not found");
             }
+             
+            foreach (string name in comm.Names)
+            {
+                _aliasToCommand.Remove(name);                  
+            }
+
+            this.UnregisterHandlers(comm);
+            HandlerChanged(this);
         }
 
         private void RegisterHandlers(CliCommand c)
@@ -311,7 +360,7 @@ namespace Linea.Command
 
         public void OnCommand(string command, string[] args, ICliFunctions cli)
         {
-            if (!this._commands.TryGetValue(command, out var c))
+            if (!this._aliasToCommand.TryGetValue(command, out var c))
             {
                 throw new ArgumentException(String.Format(format: "Unable to find a command named <{0}>", command));
             }
@@ -328,7 +377,7 @@ namespace Linea.Command
 
         public bool IsActive(string command)
         {
-            return this._commands.TryGetValue(command, out var c) && c.Active;
+            return this._aliasToCommand.TryGetValue(command, out var c) && c.Active;
         }
     }
 }

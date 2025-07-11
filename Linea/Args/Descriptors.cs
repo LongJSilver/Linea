@@ -83,7 +83,6 @@ namespace Linea.Args
         private ArgumentAliasCollection()
         {
             this._names = new List<string>();
-
         }
         private void Add(params string[] names) => this._names.AddRange(names);
 
@@ -96,6 +95,7 @@ namespace Linea.Args
             if (aliases != null) _names.AddRange(aliases);
             this.Description = Description;
         }
+
         public ArgumentAliasCollection(IEnumerable<string> names) : this()
         {
             if (names != null)
@@ -110,7 +110,6 @@ namespace Linea.Args
                     this.Description = null;
                     break;
                 default:
-
                     this.Description = this._names.Last();
                     if (this.Description.Contains(" "))
                     {

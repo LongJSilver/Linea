@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -54,12 +55,17 @@ namespace Linea.Utils
             comms.Create(THIS, GetDelegates);
         }
 
-        internal static IEnumerable<string> RowsToFixedLengthStrings(this DataTable table, string separator = "  |  ", int maxColumnLen = int.MaxValue)
+        public static IEnumerable<string> RowsToFixedLengthStrings(
+            this IEnumerable<(string, string, string, string, string)> table2, 
+            string separator = "  |  ", 
+            int maxColumnLen = int.MaxValue)
         {
-            int[] maxLengths = new int[table.Columns.Count];
-            for (int row = 0; row < table.Rows.Count; row++)
+            string[][] values = (from row in table2 select row.AllEntries()).ToArray();
+            int[] maxLengths = new int[values[0].Length];
+
+            for (int row = 0; row < values.Length; row++)
             {
-                DataRow dr = table.Rows[row];
+                string[] dr = values[row];
                 for (int col = 0; col < maxLengths.Length; col++)
                 {
                     maxLengths[col] = Math.Max(maxLengths[col], dr[col].ToString().Length);
@@ -77,10 +83,10 @@ namespace Linea.Utils
 
             StringBuilder sb = new(totLen);
 
-            for (int row = 0; row < table.Rows.Count; row++)
+            for (int row = 0; row < values.Length; row++)
             {
                 sb.Clear();
-                DataRow dr = table.Rows[row];
+                string[] dr = values[row];
 
                 for (int col = 0; col < maxLengths.Length; col++)
                 {

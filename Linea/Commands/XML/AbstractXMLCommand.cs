@@ -24,6 +24,10 @@ namespace Linea.Commmand.XML
 
     internal class CommandNode
     {
+
+        [XMLChild("Alias")]
+        internal List<string> Aliases { get; } = new List<string>();
+
         [XMLAttribute()]
         [XMLChild()]
         internal string? Name { get; set; }
@@ -31,18 +35,13 @@ namespace Linea.Commmand.XML
         [XMLAttribute()]
         [XMLChild()]
         internal string? DisplayName { get; set; }
-
+         
         [XMLAttribute()]
         [XMLChild()]
-        internal string? ShortDescription { get; set; }
-
-        [XMLAttribute()]
-        [XMLChild()]
-        internal string? LongDescription { get; set; }
+        internal string? Description { get; set; }
 
         [XMLChild("Arguments")]
         internal ArgumentsNode? Arguments { get; set; }
-
 
         [XMLAttribute()]
         [XMLChild()]
@@ -61,10 +60,15 @@ namespace Linea.Commmand.XML
             CommandDescriptor commandDescriptor = new CommandDescriptor(
                 Name ?? throw new ArgumentNullException(nameof(Name), ""),
                 DisplayName ?? Name,
-                ShortDescription,
-                LongDescription);
+                Description);
 
             CliCommand command = CliCommand.FromDelegate(commandDescriptor, deleg);
+
+            foreach (var alias in Aliases)
+            {
+                command.Descriptor.AddAlias(alias);
+            }
+
             if (this.Arguments != null)
                 this.Arguments.AddAll(command.Arguments);
 

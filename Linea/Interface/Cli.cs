@@ -2,6 +2,7 @@ using Linea.Command;
 using Linea.Data;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security;
 using System.Threading.Tasks;
@@ -118,7 +119,7 @@ namespace Linea.Interface
 
         private bool _EK123J4242HB523 = false;
         private CliCommandMode _ASDE4FAEQ3RAQ3QG = default;
-        private CliCommandMode CommandMode
+        public CliCommandMode CommandMode
         {
             get { return this._ASDE4FAEQ3RAQ3QG; }
             set
@@ -378,9 +379,9 @@ namespace Linea.Interface
 
                 this._completions = (from cd
                                     in this._CommandToHandler
-                                     where cd.Key.Name.StartsWith(substr, StringComparison.InvariantCultureIgnoreCase)
-                                        && cd.Value.IsActive(cd.Key.Name)
-                                     select cd.Key.Name).ToArray<string>();
+                                     where cd.Key.StartsWith(substr, StringComparison.InvariantCultureIgnoreCase)
+                                        && cd.Value.IsActive(cd.Key)
+                                     select cd.Key).ToArray<string>();
 
                 this._completions = this._completions?.Length == 0 ? null : this._completions;
             }

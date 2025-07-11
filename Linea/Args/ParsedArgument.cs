@@ -111,7 +111,7 @@ namespace Linea.Args
         }
         public override string ToString() => this.ExplainDebug();
 
-        internal (string, string, string, string, string) ExplainSimple()
+        internal (string, string, string, string, string) Explanation()
         {
             return ($"#{this.Ordinal}"
                   , $"{(this.IsFlag ? "F" : "A")}"

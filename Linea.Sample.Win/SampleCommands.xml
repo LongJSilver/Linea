@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <commands>
 	<Command Name="wait" AskForMissingArguments="true" Indexable="true">
+		<Alias>pause</Alias>
 		<Arguments>
 			<Simple Name="interval" ValueType="Integer" Mandatory="true" >
 				<Description>How long to wait for, in milliseconds</Description>

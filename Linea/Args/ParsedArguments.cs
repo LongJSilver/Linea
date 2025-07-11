@@ -777,6 +777,15 @@ namespace Linea.Args
             }
             return result;
         }
+
+        public IEnumerable<(string, string, string, string, string)> GetArgumentExplanations()
+        {
+                       foreach (ParsedArgument item in this)
+            {
+                yield return item.Explanation();
+            }
+        }
+
     }
 }
 
