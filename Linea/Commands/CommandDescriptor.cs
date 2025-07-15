@@ -5,7 +5,7 @@ namespace Linea.Command
 {
     public struct CommandDescriptor : IEquatable<CommandDescriptor>
     {
-
+        
 
         private readonly List<string> _names;
         public readonly string Name => _names[0];
@@ -50,6 +50,15 @@ namespace Linea.Command
         {
             return 539060726 + EqualityComparer<string>.Default.GetHashCode(Name);
         }
-         
+
+        public static implicit operator CommandDescriptor(string name)
+        {
+            return new CommandDescriptor(name, name);
+        }
+
+        public static implicit operator CommandDescriptor((string name, string displayName) t)
+        {
+            return new CommandDescriptor(t.name, t.displayName);
+        }
     }
 }
