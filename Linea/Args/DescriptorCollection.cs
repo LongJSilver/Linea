@@ -12,15 +12,15 @@ namespace Linea.Args
 {
     public class ArgumentDescriptorCollection : ICollection<ArgumentDescriptor>
     {
-        private readonly ICollection<ArgumentDescriptor> _args;
-        private readonly ICollection<ArgumentConstraint> _constraints;
+        private readonly Collection<ArgumentDescriptor> _args;
+        private readonly Collection<ArgumentConstraint> _constraints;
         private int _maxOrdinal = -1;
 
         public IEnumerable<ArgumentDescriptor> MandatoryArguments => this.Where(ad => !ad.IsOptional && !ad.IsFlag);
         public IEnumerable<ArgumentDescriptor> OptionalArgumentsAndFlags => this.Where(ad => ad.IsOptional || ad.IsFlag);
         public IEnumerable<ArgumentDescriptor> OptionalArguments => this.Where(ad => ad.IsOptional);
 
-        public IEnumerable<ArgumentConstraint> Constraints => this._constraints;
+        public IReadOnlyCollection<ArgumentConstraint> Constraints => this._constraints;
 
         public ArgumentDescriptorCollection()
         {
@@ -28,17 +28,26 @@ namespace Linea.Args
             this._constraints = new Collection<ArgumentConstraint>();
         }
 
-        public void AddConstraint(ConstraintType type, params ArgumentAliasCollection[] aliases)
+        public void AddConstraint(ConstraintType type, params string[] arguments)
         {
-            ArgumentAliasCollection[] trueArray = new ArgumentAliasCollection[aliases.Length];
-            for (int i = 0; i < aliases.Length; i++)
+            ArgumentAliasCollection[] arr = new ArgumentAliasCollection[arguments.Length];
+            for (int i = 0; i < arguments.Length; i++)
             {
-                trueArray[i] = this.GetActualDescriptorNames(aliases[i]);
+                arr[i] = arguments[i];
+            }
+            AddConstraint(type, arr);
+        }
+        public void AddConstraint(ConstraintType type, params ArgumentAliasCollection[] arguments)
+        {
+            ArgumentAliasCollection[] trueArray = new ArgumentAliasCollection[arguments.Length];
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                trueArray[i] = this.GetActualDescriptorNames(arguments[i]);
             }
             this._constraints.Add(new ArgumentConstraint(type, trueArray));
         }
 
-        private ArgumentAliasCollection GetActualDescriptorNames(ArgumentAliasCollection userInput)
+        internal ArgumentAliasCollection GetActualDescriptorNames(ArgumentAliasCollection userInput)
         {
             string[] aliases = new string[userInput.Count];
             HashSet<ArgumentDescriptor> alreadyAddedDescriptors = new();
@@ -333,7 +342,7 @@ namespace Linea.Args
             {
                 string MainName = item.Name;
                 string? Description = item.Description;
-                sb.Append("	- ").Append(item.Name).Append("		[");
+                sb.Append("\t- ").Append(item.Name).Append("		[");
 
                 if (item.IsFlag)
                 {
@@ -375,7 +384,45 @@ namespace Linea.Args
                     sb.Append('	').Append("  ").Append("Description: ");
                     sb.AppendLine(item.Description);
                 }
+                sb.AppendLine();
 
+            }
+            if (this.Constraints.Count > 0)
+            {
+                sb.AppendLine("\t----------------");
+                sb.AppendLine("\tConstraints:");
+                foreach (ArgumentConstraint item in this.Constraints)
+                {
+
+                    sb.Append("\t- ");
+                    switch (item.Type)
+                    {
+                        case ConstraintType.ExactlyOne:
+                            sb.AppendLine("You must specify exactly one of the following: ");
+                            break;
+                        case ConstraintType.AtLeastOne:
+                            sb.AppendLine("You must specify at least one of the following: ");
+                            break;
+                        case ConstraintType.OneOrLess:
+                            sb.AppendLine("You must specify none or one of the following: ");
+                            break;
+                        case ConstraintType.MoreThanOne:
+                            sb.AppendLine("You must specify two or more of the following: ");
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(item.Type), item.Type, null);
+                    }
+                    sb.Append("\t\t");
+                    int count = 0;
+                    foreach (ArgumentAliasCollection arg in item.Arguments)
+                    {
+                        if (count++ > 0)
+                            sb.Append(" | ");
+
+                        sb.Append(arg.First);
+                    }
+                    sb.AppendLine();
+                }
             }
             return sb.ToString();
         }

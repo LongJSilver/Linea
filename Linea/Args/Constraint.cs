@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -16,7 +17,7 @@ namespace Linea.Args
     {
         private readonly ArgumentAliasCollection[] AliasGroups;
         public readonly ConstraintType Type;
-
+        public IReadOnlyCollection<ArgumentAliasCollection> Arguments => AliasGroups;
         public object ConcatenatedAliasList
         {
             get

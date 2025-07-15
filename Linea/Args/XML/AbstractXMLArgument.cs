@@ -7,7 +7,12 @@ namespace Linea.Args.XML
 {
     internal class ArgumentsNode
     {
-        public List<ArgumentNode> Items { get; private set; } = new List<ArgumentNode>();
+        public List<ArgumentNode> Items { get; private set; }
+            = new List<ArgumentNode>();
+
+        [XMLChild("Constraint")]
+        public List<ConstraintNode> Constraints { get; private set; }
+            = new List<ConstraintNode>();
 
         [XMLChild("Simple")] public void Add(SimpleArgumentNode item) => Items.Add(item);
         [XMLChild("Flag")] public void Add(FlagArgumentNode item) => Items.Add(item);
@@ -16,6 +21,11 @@ namespace Linea.Args.XML
         public void AddAll(ArgumentDescriptorCollection coll)
         {
             Items.ForEach(x =>
+            {
+                x.Create(coll);
+            });
+
+            Constraints.ForEach(x =>
             {
                 x.Create(coll);
             });
@@ -105,5 +115,22 @@ namespace Linea.Args.XML
             return coll.AddNamedValue(this.Aliases, this.ValueType, this.Options, this.PossibleValues.ToArray());
         }
     }
+    internal class ConstraintNode
+    {
+        [XMLAttribute("Type")]
+        internal ConstraintType? Type { get; set; } = null;
 
+        [XMLChild("Argument")]
+        internal List<string> _arguments { get; set; } = new List<string>();
+
+
+        public void Create(ArgumentDescriptorCollection coll)
+        {
+            if (Type == null)
+                throw new ArgumentNullException(nameof(Type), "Constraint type must be specified.");
+            if (_arguments.Count == 0)
+                throw new ArgumentException("At least one argument must be specified for the constraint.", nameof(_arguments));
+            coll.AddConstraint(Type.Value, _arguments.ToArray());
+        }
+    }
 }
