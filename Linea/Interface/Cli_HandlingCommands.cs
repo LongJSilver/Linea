@@ -333,69 +333,18 @@ namespace Linea.Interface
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="RawCommand"></param>
-        /// <param name="InterpretedAs">
-        /// Returns <see cref="CliCommandMode.IndexOnly"/> if the string was interpreted as number in a fixed list. <para/>
-        /// Returns <see cref="CliCommandMode.TypeOnly"/> if the string was interpreted literally. <para/>
-        /// </param>
-        /// <returns></returns>
-        private string? FindActualCommand(string RawCommand, out CliCommandMode InterpretedAs)
-        {
-            switch (this.CommandMode)
-            {
-                case CliCommandMode.TypeOnly:
-                    InterpretedAs = CliCommandMode.TypeOnly;
-                    return RawCommand;
-                case CliCommandMode.IndexAndType:
-                    {
-                        int num = -1;
-                        if (Int32.TryParse(RawCommand.Trim(), out num) && this._indexedCommands.ContainsKey(num))
-                        {
-                            this._cm.WriteLine(string.Format("Running <{0}> ...", this._indexedCommands[num].DisplayName));
-                            this._cm.WriteLine();
-                            InterpretedAs = CliCommandMode.IndexOnly;
-                            return this._indexedCommands[num].Name;
-                        }
-                        else
-                        {
-                            InterpretedAs = CliCommandMode.TypeOnly;
-                            return RawCommand;
-                        }
-                    }
-                case CliCommandMode.IndexOnly:
-                    {
-                        int num = -1;
-                        if (Int32.TryParse(RawCommand.Trim(), out num) && this._indexedCommands.ContainsKey(num))
-                        {
-                            this._cm.WriteLine(string.Format("Running <{0}> ...", this._indexedCommands[num].DisplayName));
-                            this._cm.WriteLine();
-                            InterpretedAs = CliCommandMode.IndexOnly;
-                            return this._indexedCommands[num].Name;
-                        }
-                        else
-                        {
-                            InterpretedAs = CliCommandMode.TypeOnly;
-                            return null;
-                        }
-                    }
-                default:
-                    InterpretedAs = CliCommandMode.TypeOnly;
-                    return null;
-            }
-        }
-
-        private void ResetCommandStatus()
+          private void ResetCommandStatus()
         {
             this._currentCommandLine = default;
             this._currentCommandPromptResult = default;
+            this._currentCommandLine_split = default;
             this._currentCommandPromptFlag = default;
         }
 
         private string? _currentCommandLine = null;
         private string? _currentCommandPromptResult = null;
+        private IList<string>? _currentCommandLine_split = null;
+
         private SecureString? _currentCommandPromptPasswordResult = null;
         private readonly object _currentCommandMonitor = new object();
         private CommandPromptResult _currentCommandPromptFlag = CommandPromptResult.NoneYet;
@@ -411,31 +360,27 @@ namespace Linea.Interface
         {
             if (!String.IsNullOrWhiteSpace(this._currentCommandLine))
             {
-                this._currentCommandLine = this._currentCommandLine!.Trim();
-
-                IList<string> splitList = CliCommand.SpecialSplit(this._currentCommandLine);
-
                 string[] args; String command;
-                if (splitList.Count > 1)
+                if (_currentCommandLine_split!.Count > 1)
                 {
-                    command = splitList[0];
-                    splitList.RemoveAt(0);
-                    args = new string[splitList.Count];
-                    splitList.CopyTo(args, 0);
+                    command = _currentCommandLine_split[0];
+                    _currentCommandLine_split.RemoveAt(0);
+                    args = new string[_currentCommandLine_split.Count];
+                    _currentCommandLine_split.CopyTo(args, 0);
                 }
                 else
                 {
-                    command = this._currentCommandLine;
+                    command = this._currentCommandLine!;
                     args = new string[0];
                 }
-                splitList.Clear();
+
                 if (this._CommandToHandler.ContainsKey(command))
                 {
                     this._currentCommandHandler = this._CommandToHandler[command];
                     //executing!
                     try
                     {
-                        this._currentCommandHandler.OnCommand(command, args, this);
+                        this._currentCommandHandler!.OnCommand(command, args, this);
                     }
                     catch (Exception e)
                     {

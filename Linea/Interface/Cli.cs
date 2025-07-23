@@ -89,7 +89,7 @@ namespace Linea.Interface
                     promptStartColumn = _promptInfo.startColumn;
                 }
 
-                return (uint)(_promptInfo.ConsoleW * (_promptInfo.endRow - LogicalRowStartsAt) 
+                return (uint)(_promptInfo.ConsoleW * (_promptInfo.endRow - LogicalRowStartsAt)
                            + (_promptInfo.endColumn - promptStartColumn));
             }
         }
@@ -459,14 +459,55 @@ namespace Linea.Interface
                         this._mode = InputMode.SystemText;
                         this._acceptingInput = false;
 
-                        this._currentCommandLine = this.FindActualCommand(Command, out CliCommandMode InterpretedAs);
-                        if (InterpretedAs == CliCommandMode.TypeOnly)
+
+                        //*************************************//
+                        IList<string>? split = null;
+                        Command = Command.Trim();
+                        split = CliCommand.SpecialSplit(Command);
+
+                        bool couldBeTyped = this.CommandMode == CliCommandMode.TypeOnly || this.CommandMode == CliCommandMode.IndexAndType;
+                        bool couldBeIndexed = this.CommandMode == CliCommandMode.IndexOnly || this.CommandMode == CliCommandMode.IndexAndType;
+
+                        if (couldBeIndexed)
                         {
-                            this.AddToHistory(Command);
+                            if (split.Count > 0 && Int32.TryParse(split[0].Trim(), out int num) && this._indexedCommands.ContainsKey(num))
+                            {
+                                string actualCommandName = this._indexedCommands[num].Name;
+                                string arguments = Command.Substring(split[0].Length);
+                                if (arguments.Length > 0)
+                                {
+                                    _currentCommandLine = $"{actualCommandName} {Command.Substring(split[0].Length)}";
+                                }
+                                else
+                                {
+                                    _currentCommandLine = actualCommandName;
+                                }
+
+                                split[0] = actualCommandName;
+                                _currentCommandLine_split = split;
+
+                                this._cm.WriteLine(string.Format("Running <{0}> ...", split[0]));
+                                this._cm.WriteLine();
+                            }
+                            else if (!couldBeTyped)
+                            {
+                                _currentCommandLine = null;
+                                _currentCommandLine_split = null;
+                            }
                         }
 
-                        Task.Run(HandleCurrentCommand);
+                        if (_currentCommandLine == null)
+                        {
+                            if (couldBeTyped)
+                            {
+                                this._currentCommandLine = Command;
+                                _currentCommandLine_split = split;
+                            }
+                        }
 
+                        this.AddToHistory(Command);
+
+                        Task.Run(HandleCurrentCommand);
                     }
                 }
                 else if (this._mode == InputMode.UserCommandInput)

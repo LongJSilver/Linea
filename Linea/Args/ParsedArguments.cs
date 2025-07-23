@@ -404,7 +404,7 @@ namespace Linea.Args
                             where !declaredArgument.MustSpecifyName
                                && !declaredArgument.IsFlag
                                && !ArgsWithNames.Any(parsedArgument => declaredArgument.HasAlias(parsedArgument.Name!))
-                            select declaredArgument)/*.OrderBy((arg) => (arg.IsOptional ? +10000 : -10000) + arg.Ordinal)*/.ToList();
+                            select declaredArgument).OrderBy((arg) => (arg.IsOptional ? +10000 : -10000) + arg.Ordinal).ToList();
             }
             else
             {
